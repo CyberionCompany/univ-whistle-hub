@@ -53,16 +53,27 @@ const Dashboard = () => {
 
       setUser(session.user);
       
-      // Check if user is admin
-      const { data: profile } = await supabase
+      // Check if user is admin with a fresh query
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('is_admin')
         .eq('id', session.user.id)
         .single();
 
+      if (error) {
+        console.error('Error checking admin status:', error);
+        toast({
+          title: "Erro ao verificar permissões",
+          description: "Não foi possível verificar suas permissões de acesso.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (profile?.is_admin) {
         setIsAdmin(true);
-        navigate('/admin');
+        // Force navigation to admin panel
+        window.location.href = '/admin';
         return;
       }
       
@@ -72,7 +83,7 @@ const Dashboard = () => {
     };
 
     checkAuthAndLoadData();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const loadComplaints = async (userId: string) => {
     try {
@@ -176,7 +187,28 @@ const Dashboard = () => {
           <CardHeader className="text-center">
             <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
             <CardTitle>Carregando...</CardTitle>
+            <CardDescription>Verificando permissões...</CardDescription>
           </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show admin redirect message
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
+            <CardTitle>Redirecionando...</CardTitle>
+            <CardDescription>Você é um administrador. Redirecionando para o painel administrativo...</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button onClick={() => window.location.href = '/admin'}>
+              Ir para Painel Admin
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );
