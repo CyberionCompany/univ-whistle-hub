@@ -108,14 +108,14 @@ const Dashboard = () => {
     try {
       const { error } = await supabase
         .from('complaints')
-        .insert([{
+        .insert({
           title,
           description,
-          type: type as 'assedio' | 'discriminacao' | 'infraestrutura' | 'outro',
+          type: type as any,
           user_id: user.id,
           is_anonymous: false,
           status: 'pendente'
-        }]);
+        } as any);
 
       if (error) throw error;
 

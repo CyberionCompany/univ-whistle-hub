@@ -9,9 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Shield, LogOut, Clock, CheckCircle, AlertCircle, MessageSquare, Filter } from "lucide-react";
+import { Shield, LogOut, Clock, CheckCircle, AlertCircle, MessageSquare, Filter, Download, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { User } from "@supabase/supabase-js";
+import Papa from 'papaparse';
+import jsPDF from 'jspdf';
 
 interface Complaint {
   id: string;
@@ -28,7 +30,7 @@ interface Complaint {
   profiles?: {
     full_name: string;
     email: string;
-  } | null;
+  } | null | any;
 }
 
 const AdminPanel = () => {
@@ -163,6 +165,89 @@ const AdminPanel = () => {
     }
   };
 
+  const exportToCSV = () => {
+    const csvData = filteredComplaints.map(complaint => ({
+      'Protocolo': complaint.protocol_code,
+      'Título': complaint.title,
+      'Tipo': getTypeLabel(complaint.type),
+      'Status': complaint.status,
+      'Data': new Date(complaint.created_at).toLocaleDateString('pt-BR'),
+      'Anônima': complaint.is_anonymous ? 'Sim' : 'Não',
+      'Denunciante': complaint.is_anonymous ? 'Anônimo' : complaint.profiles?.full_name || 'N/A',
+      'Descrição': complaint.description,
+      'Resposta Admin': complaint.admin_response || 'Sem resposta'
+    }));
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `denuncias_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Relatório CSV exportado!",
+      description: "O arquivo foi baixado com sucesso.",
+    });
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(16);
+    doc.text('Relatório de Denúncias - Univértix', 20, 20);
+    
+    doc.setFontSize(12);
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
+    doc.text(`Total de denúncias: ${filteredComplaints.length}`, 20, 40);
+    
+    let yPosition = 60;
+    
+    filteredComplaints.forEach((complaint, index) => {
+      if (yPosition > 270) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      doc.setFontSize(10);
+      doc.text(`${index + 1}. Protocolo: ${complaint.protocol_code}`, 20, yPosition);
+      yPosition += 7;
+      
+      doc.text(`Título: ${complaint.title}`, 20, yPosition);
+      yPosition += 7;
+      
+      doc.text(`Tipo: ${getTypeLabel(complaint.type)} | Status: ${complaint.status}`, 20, yPosition);
+      yPosition += 7;
+      
+      doc.text(`Data: ${new Date(complaint.created_at).toLocaleDateString('pt-BR')}`, 20, yPosition);
+      yPosition += 7;
+      
+      if (!complaint.is_anonymous && complaint.profiles?.full_name) {
+        doc.text(`Denunciante: ${complaint.profiles.full_name}`, 20, yPosition);
+        yPosition += 7;
+      }
+      
+      if (complaint.admin_response) {
+        doc.text(`Resposta: ${complaint.admin_response.substring(0, 80)}...`, 20, yPosition);
+        yPosition += 7;
+      }
+      
+      yPosition += 10;
+    });
+    
+    doc.save(`denuncias_${new Date().toISOString().split('T')[0]}.pdf`);
+
+    toast({
+      title: "Relatório PDF exportado!",
+      description: "O arquivo foi baixado com sucesso.",
+    });
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pendente':
@@ -223,37 +308,51 @@ const AdminPanel = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Label>Filtros:</Label>
+        {/* Filters and Export */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Label>Filtros:</Label>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="em_analise">Em Análise</SelectItem>
+                <SelectItem value="respondida">Respondida</SelectItem>
+                <SelectItem value="arquivada">Arquivada</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Tipos</SelectItem>
+                <SelectItem value="assedio">Assédio</SelectItem>
+                <SelectItem value="discriminacao">Discriminação</SelectItem>
+                <SelectItem value="infraestrutura">Infraestrutura</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="em_analise">Em Análise</SelectItem>
-              <SelectItem value="respondida">Respondida</SelectItem>
-              <SelectItem value="arquivada">Arquivada</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Tipos</SelectItem>
-              <SelectItem value="assedio">Assédio</SelectItem>
-              <SelectItem value="discriminacao">Discriminação</SelectItem>
-              <SelectItem value="infraestrutura">Infraestrutura</SelectItem>
-              <SelectItem value="outro">Outro</SelectItem>
-            </SelectContent>
-          </Select>
+
+          {/* Export Buttons */}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={exportToCSV}>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+            <Button variant="outline" onClick={exportToPDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              Exportar PDF
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}

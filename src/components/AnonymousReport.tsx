@@ -58,15 +58,15 @@ const AnonymousReport = () => {
       // Insert complaint
       const { data, error } = await supabase
         .from('complaints')
-        .insert([{
+        .insert({
           title,
           description,
-          type: type as 'assedio' | 'discriminacao' | 'infraestrutura' | 'outro',
+          type: type as any,
           is_anonymous: true,
           anonymous_code: generatedCode,
           anonymous_password_hash: passwordHash,
           status: 'pendente'
-        }])
+        } as any)
         .select('protocol_code')
         .single();
 
