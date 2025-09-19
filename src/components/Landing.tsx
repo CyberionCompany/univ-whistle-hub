@@ -19,14 +19,24 @@ const Landing = () => {
                 <p className="text-sm text-muted-foreground">Canal Seguro de Denúncias</p>
               </div>
             </div>
+            <div className="flex items-center space-x-2">
             <Button 
               variant="outline" 
               onClick={() => navigate('/auth')}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 mr-2"
             >
               <UserCheck className="h-4 w-4" />
               <span>Entrar</span>
             </Button>
+            <Button 
+              variant="secondary" 
+              onClick={() => navigate('/admin')}
+              className="flex items-center space-x-2"
+            >
+              <Shield className="h-4 w-4" />
+              <span>Painel Admin</span>
+            </Button>
+            </div>
           </div>
         </div>
       </header>
