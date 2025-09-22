@@ -9,11 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Shield, LogOut, Clock, CheckCircle, AlertCircle, MessageSquare, Filter, Download, FileText } from "lucide-react";
+import { Shield, LogOut, Clock, CheckCircle, AlertCircle, MessageSquare, Filter, Download, FileText, BarChart3, TrendingUp, PieChart } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { User } from "@supabase/supabase-js";
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
 
 interface Complaint {
   id: string;
@@ -293,6 +295,61 @@ const AdminPanel = () => {
     }
   };
 
+  // Chart data processing
+  const getStatusChartData = () => {
+    const statusCounts = complaints.reduce((acc, complaint) => {
+      acc[complaint.status] = (acc[complaint.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return [
+      { name: 'Pendente', value: statusCounts.pendente || 0, fill: 'hsl(var(--warning))' },
+      { name: 'Em Análise', value: statusCounts.em_analise || 0, fill: 'hsl(var(--primary))' },
+      { name: 'Respondida', value: statusCounts.respondida || 0, fill: 'hsl(var(--success))' },
+      { name: 'Arquivada', value: statusCounts.arquivada || 0, fill: 'hsl(var(--muted-foreground))' }
+    ];
+  };
+
+  const getTypeChartData = () => {
+    const typeCounts = complaints.reduce((acc, complaint) => {
+      const label = getTypeLabel(complaint.type);
+      acc[label] = (acc[label] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(typeCounts).map(([name, value]) => ({
+      name,
+      value,
+      fill: `hsl(var(--chart-${Math.floor(Math.random() * 5) + 1}))`
+    }));
+  };
+
+  const getTimelineChartData = () => {
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (29 - i));
+      return date.toISOString().split('T')[0];
+    });
+
+    const complaintsPerDay = complaints.reduce((acc, complaint) => {
+      const date = new Date(complaint.created_at).toISOString().split('T')[0];
+      acc[date] = (acc[date] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return last30Days.map(date => ({
+      date: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      complaints: complaintsPerDay[date] || 0
+    }));
+  };
+
+  const chartConfig = {
+    complaints: {
+      label: "Denúncias",
+      color: "hsl(var(--primary))",
+    },
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
@@ -405,6 +462,110 @@ const AdminPanel = () => {
                 {complaints.filter(c => c.status === 'respondida').length}
               </div>
               <div className="text-sm text-muted-foreground">Respondidas</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Status Distribution Chart */}
+          <Card>
+            <CardHeader className="text-center">
+              <div className="flex items-center justify-center space-x-2">
+                <PieChart className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Distribuição por Status</CardTitle>
+              </div>
+              <CardDescription>Proporção de denúncias por status atual</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={chartConfig} className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Pie 
+                      data={getStatusChartData()}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {getStatusChartData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <ChartLegend content={<ChartLegendContent />} />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          {/* Type Distribution Chart */}
+          <Card>
+            <CardHeader className="text-center">
+              <div className="flex items-center justify-center space-x-2">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Tipos de Denúncia</CardTitle>
+              </div>
+              <CardDescription>Distribuição por categoria de denúncia</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={chartConfig} className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={getTypeChartData()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fontSize: 12 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          {/* Timeline Chart */}
+          <Card>
+            <CardHeader className="text-center">
+              <div className="flex items-center justify-center space-x-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Evolução (30 dias)</CardTitle>
+              </div>
+              <CardDescription>Número de denúncias ao longo do tempo</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={chartConfig} className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={getTimelineChartData()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="date" 
+                      tick={{ fontSize: 11 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Line 
+                      type="monotone" 
+                      dataKey="complaints" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: "hsl(var(--primary))", strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
             </CardContent>
           </Card>
         </div>
