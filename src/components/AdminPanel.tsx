@@ -82,19 +82,39 @@ const AdminPanel = () => {
 
   const loadComplaints = async () => {
     try {
-      const { data, error } = await supabase
+      // First get all complaints
+      const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setComplaints(data || []);
+      if (complaintsError) throw complaintsError;
+
+      // Then get profiles for non-anonymous complaints
+      const userIds = complaintsData
+        ?.filter(c => !c.is_anonymous && c.user_id)
+        .map(c => c.user_id) || [];
+
+      let profilesData: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds);
+
+        if (profilesError) throw profilesError;
+        profilesData = profiles || [];
+      }
+
+      // Combine the data
+      const enrichedComplaints = complaintsData?.map(complaint => ({
+        ...complaint,
+        profiles: complaint.is_anonymous || !complaint.user_id 
+          ? null 
+          : profilesData.find(p => p.id === complaint.user_id)
+      })) || [];
+
+      setComplaints(enrichedComplaints);
     } catch (error: any) {
       console.error('Error loading complaints:', error);
       toast({
