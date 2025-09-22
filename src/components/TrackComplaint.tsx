@@ -38,29 +38,26 @@ const TrackComplaint = () => {
     setHasSearched(true);
 
     try {
-      // Find complaint by anonymous code
+      // Use the secure function to authenticate and fetch complaint
       const { data: complaintData, error } = await supabase
-        .from('complaints')
-        .select('*')
-        .eq('anonymous_code', anonymousCode)
-        .eq('is_anonymous', true)
-        .single();
+        .rpc('get_anonymous_complaint', {
+          _anonymous_code: anonymousCode,
+          _password_input: password
+        });
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          throw new Error('Denúncia não encontrada. Verifique o código de acesso.');
-        }
-        throw error;
+        console.error('RPC Error:', error);
+        throw new Error('Erro ao verificar denúncia. Tente novamente.');
       }
 
-      // Verify password
-      const isPasswordValid = await bcrypt.compare(password, complaintData.anonymous_password_hash);
-      
-      if (!isPasswordValid) {
-        throw new Error('Senha incorreta. Verifique a senha informada.');
+      // Check if complaint was found and password was correct
+      if (!complaintData || complaintData.length === 0) {
+        throw new Error('Denúncia não encontrada ou senha incorreta. Verifique os dados informados.');
       }
 
-      setComplaint(complaintData);
+      // Get the first (and only) result
+      const complaint = complaintData[0];
+      setComplaint(complaint);
       toast({
         title: "Denúncia encontrada!",
         description: "Informações carregadas com sucesso.",

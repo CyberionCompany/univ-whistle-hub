@@ -445,6 +445,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_anonymous_complaint: {
+        Args: { _anonymous_code: string; _password_input: string }
+        Returns: {
+          admin_response: string
+          created_at: string
+          description: string
+          id: string
+          protocol_code: string
+          responded_at: string
+          status: Database["public"]["Enums"]["complaint_status"]
+          title: string
+          type: Database["public"]["Enums"]["complaint_type"]
+          updated_at: string
+        }[]
+      }
       get_user_company_id: {
         Args: Record<PropertyKey, never>
         Returns: string
