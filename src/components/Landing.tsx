@@ -11,31 +11,31 @@ const Landing = () => {
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Centro Universitário Univértix</h1>
-                <p className="text-sm text-muted-foreground">Canal Seguro de Denúncias</p>
-              </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <img src="/logo.svg" alt="Univértix - Centro Universitário" className="h-12 w-auto" />
             </div>
-            <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/auth')}
-              className="flex items-center space-x-2 mr-2"
-            >
-              <UserCheck className="h-4 w-4" />
-              <span>Entrar</span>
-            </Button>
-            <Button 
-              variant="secondary" 
-              onClick={() => navigate('/admin')}
-              className="flex items-center space-x-2"
-            >
-              <Shield className="h-4 w-4" />
-              <span>Painel Admin</span>
-            </Button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/auth')}
+                className="flex items-center justify-center space-x-2 text-sm"
+                size="sm"
+              >
+                <UserCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">Entrar</span>
+                <span className="sm:hidden">Login</span>
+              </Button>
+              <Button 
+                variant="secondary" 
+                onClick={() => navigate('/admin')}
+                className="flex items-center justify-center space-x-2 text-sm"
+                size="sm"
+              >
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Painel Admin</span>
+                <span className="sm:hidden">Admin</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -43,17 +43,17 @@ const Landing = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-foreground mb-4">
+        <div className="text-center mb-8 sm:mb-12 px-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4">
             Canal Seguro de Denúncias
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Um espaço seguro e confidencial para estudantes, professores e colaboradores registrarem denúncias de forma anônima ou identificada.
           </p>
         </div>
 
         {/* Action Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+        <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto mb-12 sm:mb-16 px-4">
           <Card className="border-2 hover:border-primary transition-colors cursor-pointer group" onClick={() => navigate('/anonymous-report')}>
             <CardHeader className="text-center pb-4">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
@@ -92,7 +92,7 @@ const Landing = () => {
         </div>
 
         {/* Track Complaint */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 sm:mb-16 px-4">
           <Card className="max-w-md mx-auto">
             <CardHeader className="text-center">
               <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
@@ -117,9 +117,9 @@ const Landing = () => {
         </div>
 
         {/* Info Section */}
-        <div className="bg-card rounded-lg p-8 border">
-          <h3 className="text-2xl font-semibold text-center mb-6">Sua Segurança é Nossa Prioridade</h3>
-          <div className="grid md:grid-cols-3 gap-6 text-center">
+        <div className="bg-card rounded-lg p-6 sm:p-8 border mx-4">
+          <h3 className="text-xl sm:text-2xl font-semibold text-center mb-6">Sua Segurança é Nossa Prioridade</h3>
+          <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-6 text-center">
             <div>
               <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
               <h4 className="font-semibold mb-2">Confidencialidade</h4>

@@ -97,24 +97,24 @@ const AnonymousReport = () => {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex items-center justify-center">
             <Card className="w-full max-w-2xl">
               <CardHeader className="text-center">
                 <div className="mx-auto w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mb-4">
                   <Shield className="h-8 w-8 text-success" />
                 </div>
-                <CardTitle className="text-2xl text-success">Denúncia Registrada com Sucesso!</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-xl sm:text-2xl text-success">Denúncia Registrada com Sucesso!</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   Sua denúncia foi registrada. Guarde as informações abaixo para acompanhar o andamento.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="bg-muted p-6 rounded-lg space-y-4">
+                <div className="bg-muted p-4 sm:p-6 rounded-lg space-y-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Protocolo de Acompanhamento</Label>
                     <div className="flex items-center space-x-2 mt-1">
-                      <code className="text-lg font-mono bg-background px-3 py-2 rounded border flex-1">
+                      <code className="text-sm sm:text-lg font-mono bg-background px-2 sm:px-3 py-2 rounded border flex-1 break-all">
                         {protocolCode}
                       </code>
                       <Button
@@ -130,7 +130,7 @@ const AnonymousReport = () => {
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Código de Acesso</Label>
                     <div className="flex items-center space-x-2 mt-1">
-                      <code className="text-lg font-mono bg-background px-3 py-2 rounded border flex-1">
+                      <code className="text-sm sm:text-lg font-mono bg-background px-2 sm:px-3 py-2 rounded border flex-1 break-all">
                         {anonymousCode}
                       </code>
                       <Button
@@ -146,7 +146,7 @@ const AnonymousReport = () => {
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Sua Senha</Label>
                     <div className="flex items-center space-x-2 mt-1">
-                      <code className="text-lg font-mono bg-background px-3 py-2 rounded border flex-1">
+                      <code className="text-sm sm:text-lg font-mono bg-background px-2 sm:px-3 py-2 rounded border flex-1 break-all">
                         {password}
                       </code>
                       <Button
@@ -195,11 +195,11 @@ const AnonymousReport = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/')}
-          className="mb-8 flex items-center space-x-2"
+          className="mb-6 sm:mb-8 flex items-center space-x-2"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Voltar ao Início</span>
@@ -209,8 +209,8 @@ const AnonymousReport = () => {
           <Card className="w-full max-w-2xl">
             <CardHeader className="text-center">
               <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
-              <CardTitle className="text-2xl">Denúncia Anônima</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl sm:text-2xl">Denúncia Anônima</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 Sua identidade será mantida em sigilo. Você receberá um código para acompanhar o andamento.
               </CardDescription>
             </CardHeader>
@@ -257,7 +257,7 @@ const AnonymousReport = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha para Acompanhamento *</Label>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <div className="relative flex-1">
                       <Input
                         id="password"
@@ -267,6 +267,7 @@ const AnonymousReport = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         minLength={4}
+                        className="w-full"
                       />
                       <Button
                         type="button"
@@ -286,8 +287,10 @@ const AnonymousReport = () => {
                       type="button"
                       variant="outline"
                       onClick={generateSecurePassword}
+                      className="w-full sm:w-auto"
                     >
-                      Gerar
+                      <span className="sm:hidden">Gerar Senha</span>
+                      <span className="hidden sm:inline">Gerar</span>
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -295,9 +298,9 @@ const AnonymousReport = () => {
                   </p>
                 </div>
 
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">🔒 Garantia de Anonimato</h4>
-                  <p className="text-sm text-muted-foreground">
+                <div className="bg-muted p-3 sm:p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2 text-sm sm:text-base">🔒 Garantia de Anonimato</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     Esta denúncia será completamente anônima. Não coletamos dados pessoais que possam identificá-lo.
                     O código gerado e sua senha são as únicas formas de acessar esta denúncia.
                   </p>
