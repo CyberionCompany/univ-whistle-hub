@@ -64,8 +64,7 @@ const AnonymousReport = () => {
           type: type as any,
           is_anonymous: true,
           anonymous_code: generatedCode,
-          anonymous_password_hash: passwordHash,
-          status: 'pendente'
+          anonymous_password_hash: passwordHash
         } as any)
         .select('protocol_code')
         .single();
