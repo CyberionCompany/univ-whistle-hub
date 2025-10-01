@@ -441,6 +441,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_anonymous_complaint: {
+        Args: {
+          _description: string
+          _password: string
+          _title: string
+          _type: Database["public"]["Enums"]["complaint_type"]
+        }
+        Returns: {
+          anonymous_code: string
+          protocol_code: string
+        }[]
+      }
       generate_protocol_code: {
         Args: Record<PropertyKey, never>
         Returns: string

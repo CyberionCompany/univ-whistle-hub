@@ -9,8 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Shield, ArrowLeft, FileText, Eye, EyeOff } from "lucide-react";
-import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcryptjs';
+
 
 const AnonymousReport = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -49,24 +48,14 @@ const AnonymousReport = () => {
     setIsLoading(true);
 
     try {
-      // Generate unique anonymous code
-      const generatedCode = uuidv4();
-      
-      // Hash the password
-      const passwordHash = await bcrypt.hash(password, 10);
-
-      // Insert complaint
+      // Call the RPC function to create anonymous complaint with proper password hashing
       const { data, error } = await supabase
-        .from('complaints')
-        .insert({
-          title,
-          description,
-          type: type as any,
-          is_anonymous: true,
-          anonymous_code: generatedCode,
-          anonymous_password_hash: passwordHash
-        } as any)
-        .select('protocol_code')
+        .rpc('create_anonymous_complaint', {
+          _title: title,
+          _description: description,
+          _type: type as any,
+          _password: password
+        })
         .single();
 
       if (error) {
@@ -74,7 +63,7 @@ const AnonymousReport = () => {
       }
 
       setProtocolCode(data.protocol_code);
-      setAnonymousCode(generatedCode);
+      setAnonymousCode(data.anonymous_code);
       setIsSuccess(true);
 
       toast({
